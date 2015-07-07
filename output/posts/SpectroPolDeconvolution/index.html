@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html prefix="
+og: http://ogp.me/ns#
+article: http://ogp.me/ns/article#
+" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="description" content="SpectroPolDeconvolution">
+<meta name="viewport" content="width=device-width">
+<title>SpectroPolDeconvolution | My work notebook</title>
+<link href="../../assets/css/all-nocdn.css" rel="stylesheet" type="text/css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../../rss.xml">
+<link rel="canonical" href="http://aasensio.github.io/posts/SpectroPolDeconvolution/">
+<!--[if lt IE 9]><script src="/assets/js/html5.js"></script><![endif]--><meta name="author" content="A. Asensio Ramos">
+<meta property="og:site_name" content="My work notebook">
+<meta property="og:title" content="SpectroPolDeconvolution">
+<meta property="og:url" content="http://aasensio.github.io/posts/SpectroPolDeconvolution/">
+<meta property="og:description" content="SpectroPolDeconvolution">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2014-05-19T09:40:06+01:00">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="work">
+</head>
+<body>
+    <section class="social"><ul>
+<li><a href="../../index.html" title="Home"><i class="icon-home"></i></a></li>
+            <li><a href="../../archive.html" title="Archives"><i class="icon-folder-open-alt"></i></a></li>
+            <li><a href="../../categories/index.html" title="Tags"><i class="icon-tags"></i></a></li>
+            <li><a href="../../rss.xml" title="RSS"><i class="icon-rss"></i></a></li>
+            <li><a href="http://www.iac.es/project/inversion" title="About me"><i class="icon-user"></i></a></li>
+            <li><a href="https://twitter.com/aasensior" title="My Twitter"><i class="icon-twitter"></i></a></li>
+            <li><a href="https://github.com/aasensio" title="My Github"><i class="icon-github"></i></a></li>
+
+        </ul></section><section class="page-content"><div class="content" rel="main">
+    <div class="post">
+        <h1 class="p-name entry-title" itemprop="headline name">SpectroPolDeconvolution</h1>
+
+        <div class="meta">
+            <div class="authordate">
+                <time class="timeago" datetime="2014-05-19T09:40:06+01:00">2014-05-19 09:40</time>
+            
+                      |  
+        <a href="index.ipynb" id="sourcelink">Source</a>
+
+            </div>
+                    <div itemprop="keywords" class="tags">
+        <ul>
+        Tags : 
+           <li><a class="tag p-category" href="../../categories/python/" rel="tag">python</a></li>
+           <li><a class="tag p-category" href="../../categories/work/" rel="tag">work</a></li>
+        </ul>
+</div>
+
+        </div>
+        <div class="body">
+            <div tabindex="-1" id="notebook" class="border-box-sizing">
+    <div class="container" id="notebook-container">
+We face the problem of correcting two-dimensional spectropolarimetric data from
+the perturbation introduced by the PSF of the Hinode solar optical telescope. 
+The two-dimensional data has been obtained by scanning a slit
+on the surface of the Sun and recording the information of the four Stokes profiles $(I,Q,U,V)$
+on each point along the slit for a set of discrete wavelength points around the 630 nm Fe \textsc{i}
+doublet. As a consequence, the data can be considered to be four three-dimensional cubes of
+images. We use the notation $\mathbf{I}(\lambda)$, $\mathbf{Q}(\lambda)$, $\mathbf{U}(\lambda)$ and 
+$\mathbf{V}(\lambda)$ to refer to observed images at a certain wavelength $\lambda$. In practice, given the 
+scanning process, these are not strictly speaking images, because each column of the image is
+taken at a different time. 
+
+In general, in the standard image formation paradigm, the observed image $\mathbf{I}$ (for simplicity
+we focus on Stokes $I$ but the same expressions apply to any Stokes parameter) that one obtains in the
+detector after degradation by the atmosphere and the optical devices of the telescope at a given
+wavelength can be written as:
+
+$$
+\mathbf{I} = \mathbf{O} * \mathbf{P} + \mathbf{N}, 
+\label{eq:image_formation}
+$$
+<!-- TEASER_END -->
+where $\mathbf{P}$ is the PSF of the atmosphere+telescope in the image of interest while
+$\mathbf{O}$ is the original unperturbed image that one would obtain with a perfect instrument
+without diffraction and without any atmospheric perturbation. The operator $*$ is the
+standard convolution operator. The quantity $\mathbf{N}$ 
+is the noise contribution in the image formation produced at the camera. We assume that we are not in the low
+illumination regime and assume that $\mathbf{N}$ follows a Gaussian distribution with zero mean
+and diagonal covariance matrix with equal variance $\sigma_n^2$.
+The previous expression can be applied to individual monochromatic images, with potentially
+different PSFs for each wavelength. For simplicity, we make the assumption that the PSF is wavelength-independent
+in this work, which turns out to be a very good approximation given the wavelength ranges that
+we are dealing with (less than 2.5 \AA\ in the Hinode case). The specific PSF that we
+consider has been described in
+\cite{vannoort12} and obtained from the pupil specified by \cite{suematsu08}, which takes into account the
+entrance pupil of the telescope and the presence of a spider. Note that, although the PSF shown in
+the figure spans 9''$\times$9'', only the central few arcsec are really important.
+
+Under the presence of uncertainties induced by the noise, any deconvolution must be treated under a statistical framework. Consequently,
+we have only access to the distribution of reconstructed images. Using the Bayes theorem, the posterior
+distribution $p(\mathbf{O}|\mathbf{I},\mathbf{P})$ that describes the probability of the restored image given the observed
+image and the information about the image-forming system is given by:
+
+$$
+p(\mathbf{O}|\mathbf{I},\mathbf{P}) = \frac{p(\mathbf{I}|\mathbf{O},\mathbf{P}) p(\mathbf{O})}{p(\mathbf{I})},
+$$
+
+where $p(\mathbf{I}|\mathbf{O},\mathbf{P})$ is the likelihood or, in other words, the probability that an observed image $\mathbf{I}$ has been
+obtained given an original image $\mathbf{O}$ and the PSF. $p(\mathbf{O})$ encodes all the a-priori information we have
+for the images (i.e., degree of smoothness, presence of large gradients, etc.). Finally, $p(\mathbf{I})$ is a
+normalization constant (termed evidence) that is independent of the unperturbed image.
+
+Under the assumption of uncorrelated Gaussian noise in every pixel of the image, the likelihood can be written as:
+
+$$
+p(\mathbf{I}|\mathbf{O},\mathbf{P}) = \prod_{k=1}^N \exp \left[ - \frac{ \left(I_k - (\mathbf{O} * \mathbf{P})_k\right)^2 }{2\sigma_n^2} \right],
+$$
+
+where the product is done over all $N$ pixels of the image, $I_k$ represents the $k$-th pixel
+of the observed image (in lexicographic order) and $(\mathbf{O} * \mathbf{P})_k$ is the $k$-th
+pixel (in lexicographic order) of the original image convolved with the PSF.
+If we additionally assume that the prior over restored images is flat (all images are equally
+probable), the most probable image is the one that maximizes the likelihood. Taking the derivative
+of the previous Gaussian likelihood with respect to the original image $\mathbf{O}$ results in the
+following iterative algorithm known as the Gaussian version of the 
+Richardson-Lucy (RL) algorithm:
+
+$$
+\mathbf{O}_\mathrm{new} = \mathbf{O}_\mathrm{old} + \left[\mathbf{I} - \left(\mathbf{O}_\mathrm{old} * \mathbf{P} \right) \right] \otimes \mathbf{P},
+\label{eq:rl_deconvolution}
+$$
+
+where the symbol $\otimes$ represents image correlation (which can be written in terms of the convolution
+operator). The previous iterative scheme does not guarantee positivity of the images even in the case
+that the observed images are positive and thus has to be forced somehow for Stokes $I$. However,
+note that for the Stokes parameters, the pixel values can be positive and negative. Additionally, since the RL
+deconvolution is a maximum-likelihood algorithm, it is sensitive to overreconstruction produced by the
+presence of noise. The most notable effect is the appearance of high-frequency structures in the reconstructed image. In
+order to avoid this problem, it is customary to stop the iterative scheme before such artifacts
+appear.
+
+The most straightforward way to deconvolve two-dimensional spectropolarimetric data is to deconvolve
+the monochromatic images of the Stokes profiles, in a way similar to what is
+done with imaging data \citep[e.g.,][]{vannoort05}. This approach presents two clear drawbacks. First, 
+the number of deconvolutions one has to carry out is large. For instance, the spectropolarimetric
+data of Hinode SOT/SP contains 112 wavelength points. Second, many of these wavelengths contain
+practically no information in Stokes $Q$, $U$ and $V$. This is the case of the continuum wavelengths where,
+unless strong velocity fields are present, the polarimetric signal is expected to be zero. Therefore,
+one ends up in the difficult situation of having to deconvolve very noisy images. The nature of 
+the RL algorithm then induces an exponential increase of the spatially high-frequency noise, making the final
+images useless.
+
+In general, and as a consequence of the smoothing introduced by the PSF, some information is irremediably lost. This unavoidably transforms the
+deconvolution process into an ill-posed problem. In particular, a set of solutions with potentially diverging power
+in the high spatial frequencies are perfectly compatible with the observations. Standard spatial deconvolution
+techniques solve this dilemma by ad-hoc spatial filtering methods that avoid the divergence of 
+high frequencies during the deconvolution process. Typical methods include setting a hard or soft threshold
+on the resulting modulation transfer function that avoids the appearance of high-frequencies in the
+resulting image.
+
+
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Orthogonal-basis">Orthogonal basis<a class="anchor-link" href=".#Orthogonal-basis">¶</a>
+</h4>
+</div>
+</div>
+</div>Inspired by the work of \cite{vannoort12}, we pursue here a regularized deconvolution. Contrary to the
+typical procedure in image deconvolution, the regularization that we
+propose acts on the spectral dimension and not on the spatial dimensions. We assume that the unperturbed Stokes profiles at each
+pixel can be written as a linear combination of the elements of a complete orthonormal basis formed by
+the eigenfunctions $\{\phi_i(\lambda)\}$. Consequently, any of the unperturbed Stokes profiles can
+be written as:
+
+$$
+\mathbf{O}(\lambda) = \sum_{i=1}^{N_\lambda} \omega_i \phi_i(\lambda),
+\label{eq:pca_decomposition}
+$$
+
+where $N_\lambda$ is the number of wavelength points that we have in the Stokes profiles.
+If only a few elements of the eigenbasis are enough to reproduce the unperturbed Stokes profiles,
+it is advisable to truncate the previous sum and only take into account the first $N \ll N_\lambda$ eigenfunctions.
+Therefore, the unperturbed data is now described by a set of images $\omega_i$ (that
+we term projected images) which are built by
+projecting the Stokes profiles of each pixel on the orthonormal wavelength basis functions. 
+
+Given that we have assumed that the monochromatic PSF is wavelength-independent, the observed
+perturbed Stokes profiles is obtained after applying Eq. (\ref{eq:image_formation}):
+
+$$
+\mathbf{I}(\lambda) = \sum_{i=1}^{N} \left( \omega_i * \mathbf{P} \right) \phi_i(\lambda) + \mathbf{N},
+$$
+
+where we have used the fact that the convolution operator only acts on the spatial dimensions. Because of the presence of
+noise, we can find the original unperturbed Stokes profiles by computing the projection of the
+previous equation onto the orthonormal basis functions:
+
+$$
+\langle \mathbf{I}(\lambda), \phi_k(\lambda) \rangle = \sum_{i=1}^{N} \left( \omega_i * \mathbf{P} \right) \langle \phi_i(\lambda), \phi_k(\lambda) 
+\rangle + \mathbf{N},
+\label{eq:projectionPCA}
+$$
+
+where $\langle \cdot,\cdot\rangle$ indicates the dot product of the two functions. The
+noise term still maintains the same statistical properties because the basis functions are normalized to unit norm. Since the
+basis set is orthonormal, the previous expression simplifies to:
+
+$$
+\langle \mathbf{I}(\lambda), \phi_k(\lambda) \rangle = \omega_k * \mathbf{P} + \mathbf{N}.
+$$
+
+Consequently, the regularization process we have used implies that we have to deconvolve the projected images 
+(associated to the basis functions $\phi_k(\lambda)$) from the PSF and reconstruct
+back the unperturbed image. This deconvolution is done using the
+RL iteration.
+
+The previous approach is valid for any set of orthonormal functions that can be used
+to explain the Stokes profiles \citep[e.g.,][]{hermite_deltoro03}. However, the basis obtained
+after PCA is ideal in our case. The reason is that the PCA decomposition transformation is defined in such a 
+way that the first principal component accounts for as much of the variability in the data as possible,
+and each additional principal component in turn explains the largest variability in the data
+under the orthogonality constraint. Therefore, working with PCA-projected images we find that the real signal
+present in each pixel appears only associated to the first few elements of the basis set, while the remaining elements
+are used to explain the noise. Consequently, the influence of noise is largely
+minimized if one only focuses on the maps of low-order coefficients. This is a huge advantage with respect
+to the wavelength-by-wavelength deconvolution.
+
+The procedure starts by building the $M \times N_\lambda$ matrix of measurements, where the Stokes profiles (with
+the mean Stokes profile substracted) are placed as the rows of a matrix for each one of the $M$ observed pixels. 
+This matrix (or equivalently its covariance matrix) is diagonalized using the singular value decomposition \citep[e.g.,][]{numerical_recipes86}.
+The eigenvectors obtained after the diagonalization form a basis that is efficient in reproducing the
+observed Stokes profiles and only a few of them are needed. In principle, and according to Eq. (\ref{eq:pca_decomposition}),
+we should use the PCA eigenvectors obtained with the original Stokes profiles. Since we do not have 
+access to those profiles, we have used the observed Stokes profiles to build such database. Unless the
+original profiles are radically different to the observed ones, we expect the eigenbasis to be also
+efficient in reproducing the original Stokes profiles.
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h4 id="Non-orthogonal-basis">Non-orthogonal basis<a class="anchor-link" href=".#Non-orthogonal-basis">¶</a>
+</h4>
+</div>
+</div>
+</div>If the Stokes parameters are expanded in a non-orthogonal basis (a so-called dictionary), we cannot directly
+reconstruct the profiles by projecting over the elements of the basis. Equation (\ref{eq:projectionPCA}) is then
+transformed into:
+
+$$
+\langle \mathbf{I}(\lambda), \phi_k(\lambda) \rangle = \sum_{i=1}^{N} \left( \omega_i * \mathbf{P} \right) K_{ik} + \mathbf{N},
+$$
+where $K_{ik}$ are the elements of the Gram matrix of the dictionary. The previous equations constitute a linear
+system for the convolved images. A possible approach here is to solve
+the noisy linear system by minimizing the $\ell_2$ norm of the residual (for instance, using singular vector decomposition)
+for each pixel and then deconvolve the resulting images $\omega_i * \mathbf{P}$ using the same approach as
+before. The final Stokes profiles are obtained as a linear combination of the deconvolved images and the elements of
+the dictionary.
+    </div>
+  </div>
+
+        </div>
+                <ul class="pager hidden-print">
+<li class="previous">
+                <a href="../BeyondFillingFactor/" rel="prev" title="BeyondFillingFactor">Previous post</a>
+            </li>
+            <li class="next">
+                <a href="../vsiniDeconvolution/" rel="next" title="vsiniDeconvolution">Next post</a>
+            </li>
+        </ul>
+</div>
+                    <footer id="footer" role="contentinfo"><p>Contents © 2015         <a href="mailto:aasensioramos@gmail.com">A. Asensio Ramos</a> - Powered by         <a href="https://getnikola.com" rel="nofollow">Nikola</a>         
+<a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/2.5/ar/">
+<img alt="Creative Commons License BY-NC-SA" style="border-width:0; margin-bottom:12px;" src="http://i.creativecommons.org/l/by-nc-sa/2.5/ar/88x31.png"></a></p>
+            
+        </footer>
+</div>
+    </section><script src="../../assets/js/all-nocdn.js" type="text/javascript"></script><script type="text/javascript">
+            $(function(){
+                $('.timeago').timeago();
+            });
+        </script>
+</body>
+</html>

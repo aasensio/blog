@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex
+    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+ <sitemap>
+  <loc>http://aasensio.github.io/categories/python.xml</loc>
+  <lastmod>2015-07-07</lastmod>
+ </sitemap>
+ <sitemap>
+  <loc>http://aasensio.github.io/categories/work.xml</loc>
+  <lastmod>2015-07-07</lastmod>
+ </sitemap>
+ <sitemap>
+  <loc>http://aasensio.github.io/galleries/rss.xml</loc>
+  <lastmod>2015-07-07</lastmod>
+ </sitemap>
+ <sitemap>
+  <loc>http://aasensio.github.io/rss.xml</loc>
+  <lastmod>2015-07-07</lastmod>
+ </sitemap>
+ <sitemap>
+  <loc>http://aasensio.github.io/sitemap.xml</loc>
+  <lastmod>2015-07-07</lastmod>
+ </sitemap>
+</sitemapindex>

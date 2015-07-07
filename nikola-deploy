@@ -1,0 +1,5 @@
+#!/bin/bash
+cd /scratch/Dropbox/aasensio.github.io 
+git add -A 
+git commit -m "Commiting" 
+git push origin master
